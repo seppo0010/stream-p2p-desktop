@@ -40,8 +40,11 @@
           const pos = robot.getMousePos()
           robot.moveMouse(pos.x + message.mouse.x * screenSize.width, pos.y + message.mouse.y * screenSize.height)
       }
+      if (message.mouseClick) {
+          robot.mouseToggle(message.mouseClick.down, message.mouseClick.button)
+      }
       if (message.keyboard) {
-          robot.keyToggle(message.keyboard.key, message.keyboard.down, message.keyboard.modifier)
+          robot.keyToggle(message.keyboard.key, message.keyboard.down)
       }
     }
     pc.onicegatheringstatechange = async (e) => {
