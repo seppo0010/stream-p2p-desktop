@@ -12,7 +12,11 @@
   let stream;
   function _startScreenCapture() {
     return navigator.mediaDevices.getUserMedia({
-      audio: false,
+      audio: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+        }
+      },
       video: {
         mandatory: {
           chromeMediaSource: 'desktop',
@@ -87,6 +91,6 @@
   <body>
   <button onclick="broadcast()">broadcast</button><br>
   <a href="#" id="link" style="display: none;">View link</a><br>
-  <video id="video" autoplay="true"></video>
+  <video id="video" muted="true" autoplay="true"></video>
   </body>
 </html>
