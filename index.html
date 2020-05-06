@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <script>
+  const id = 'seppo'
+  let stream;
+  function _startScreenCapture() {
+    return navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+        }
+      }
+    })
+  }
+
+  async function broadcast() {
+    stream = await _startScreenCapture()
+    document.getElementById('link').href = `/player/${id}`
+    document.getElementById('link').style.display = 'block'
+    document.getElementById('video').srcObject = stream;
+    createPeerConnection()
+  }
+
+  async function createPeerConnection() {
+    const videoTracks = stream.getVideoTracks();
+    const offer = {candidates: []};
+    const pc = new RTCPeerConnection({iceServers: [{urls: "stun:stun.l.google.com:19302"}]});
+    pc.onicegatheringstatechange = async (e) => {
+      if (e.target.iceGatheringState === 'complete') {
+        if (!offer.offer || !offer.candidates) {
+          alert('No SDP or no candidates :(')
+          return
+        }
+        const res = await fetch(`http://localhost:8000/stream/${id}`, {
+          method: 'POST',
+          body: JSON.stringify(offer),
+          headers:{
+            'Content-Type': 'application/json'
+          }
+        })
+        const waitForAnswer = async () => {
+          let res = await fetch(`http://localhost:8000/stream/${id}/answer`)
+          let data = await res.json()
+          pc.setRemoteDescription(data);
+          createPeerConnection()
+        }
+        waitForAnswer()
+      }
+    }
+    pc.onicecandidate = (ic) => {
+      if (ic.candidate) {
+        offer.candidates.push(ic.candidate)
+      }
+    }
+    stream.getTracks().forEach(track => pc.addTrack(track, stream));
+    pc.createOffer({}).then((desc) => {
+      pc.setLocalDescription(desc);
+      offer.offer = desc;
+    }, (error) => {
+      alert(`Failed to create session description: ${error.toString()}`);
+    });
+  }
+    </script>
+  </head>
+  <body>
+  <button onclick="broadcast()">broadcast</button><br>
+  <a href="#" id="link" style="display: none;">View link</a><br>
+  <video id="video" autoplay="true"></video>
+  </body>
+</html>
