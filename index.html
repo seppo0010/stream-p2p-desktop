@@ -6,7 +6,9 @@
     <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
     <script>
+  const robot = require('robotjs')
   const id = 'seppo'
+  const screenSize = robot.getScreenSize()
   let stream;
   function _startScreenCapture() {
     return navigator.mediaDevices.getUserMedia({
@@ -31,6 +33,17 @@
     const videoTracks = stream.getVideoTracks();
     const offer = {candidates: []};
     const pc = new RTCPeerConnection({iceServers: [{urls: "stun:stun.l.google.com:19302"}]});
+    const dc = pc.createDataChannel('data')
+    dc.onmessage = (event) => {
+      const message = JSON.parse(event.data)
+      if (message.mouse) {
+          const pos = robot.getMousePos()
+          robot.moveMouse(pos.x + message.mouse.x * screenSize.width, pos.y + message.mouse.y * screenSize.height)
+      }
+      if (message.keyboard) {
+          robot.keyToggle(message.keyboard.key, message.keyboard.down, message.keyboard.modifier)
+      }
+    }
     pc.onicegatheringstatechange = async (e) => {
       if (e.target.iceGatheringState === 'complete') {
         if (!offer.offer || !offer.candidates) {

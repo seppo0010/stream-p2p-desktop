@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "rebuild": "electron-rebuild -f -w robotjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron ."
   },
@@ -18,6 +19,10 @@
   },
   "homepage": "https://github.com/seppo0010/stream-p2p-desktop#readme",
   "devDependencies": {
-    "electron": "^8.2.5"
+    "electron": "^8.2.5",
+    "electron-rebuild": "^1.10.1"
+  },
+  "dependencies": {
+    "robotjs": "^0.6.0"
   }
 }
